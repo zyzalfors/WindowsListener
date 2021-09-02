@@ -123,7 +123,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		 case WM_DRAWCLIPBOARD : {
 		 	 if (OpenClipboard(hwnd)) {
                HANDLE ClipData = GetClipboardData(CF_TEXT);
-               LPCTSTR clipData = GlobalLock(ClipData);
+               LPCTSTR clipData = (LPCTSTR) GlobalLock(ClipData);
                GlobalUnlock(ClipData);
                CloseClipboard();
                if(clipData != NULL) {
@@ -159,10 +159,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) 
 {
 	WNDCLASSEX wc = {};
-	wc.cbSize		 = sizeof(WNDCLASSEX);
+	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.lpfnWndProc	 = WndProc; 
-	wc.hInstance	 = hInstance;
-	wc.hCursor		 = LoadCursor(NULL, IDC_ARROW);
+	wc.hInstance = hInstance;
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.lpszClassName = "WindowClass";
 
 	if(!RegisterClassEx(&wc)) {
