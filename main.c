@@ -28,8 +28,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
     time_t now = time(0);
 	switch(Message) {
 		
-    	case WM_CREATE : {
-    		 
+    	case WM_CREATE : {   		 
     		 SetWindowLongA(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_MAXIMIZEBOX);		 
     	     CreateWindow("BUTTON", "Listen clipboard", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 10, 10, 160, 25, hwnd, (HMENU) listenClipboardID, NULL, NULL);
     	     CreateWindow("BUTTON", "Listen keystrokes", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 10, 40, 160, 25, hwnd, (HMENU) listenKeystrokesID, NULL, NULL);
