@@ -8,7 +8,7 @@
 HHOOK hook = 0;
 
 bool exists(char* path) {
-	return !(fopen(path, "r") == NULL);
+	return fopen(path, "r") != NULL;
 }
 
 LRESULT CALLBACK keyProc(int nCode, WPARAM wParam, LPARAM lParam) {
