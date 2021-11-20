@@ -114,8 +114,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
  return 0;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) 
-{
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
  ShowWindow(GetConsoleWindow(), SW_HIDE);
  WNDCLASSEX wc = {};
  wc.cbSize = sizeof(WNDCLASSEX);
@@ -123,7 +122,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
  wc.hInstance = hInstance;
  wc.lpszClassName = "WindowClass";
  if(!RegisterClassEx(&wc)) { return 0; }
- HWND hwnd = CreateWindowEx(0, "WindowClass", "WListener 1.0", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, CW_USEDEFAULT, CW_USEDEFAULT, 250, 100, NULL,NULL,hInstance,NULL);
+ HWND hwnd = CreateWindowEx(0, "WindowClass", "WListener 1.0", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, CW_USEDEFAULT, CW_USEDEFAULT, 250, 100, NULL, NULL, hInstance, NULL);
  if(hwnd == NULL) { return 0; }
  MSG msg = {};
  while(GetMessage(&msg, NULL, 0, 0) > 0) { 
