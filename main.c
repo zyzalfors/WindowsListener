@@ -78,12 +78,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
    if(wParam == listenClipboardID) 
    {
     if(IsDlgButtonChecked(hWnd, listenClipboardID) == BST_UNCHECKED) 
-	{
+    {
      CheckDlgButton(hWnd, listenClipboardID, BST_CHECKED);
      SetClipboardViewer(hWnd);
     }
     else 
-	{
+    {
      CheckDlgButton(hWnd, listenClipboardID, BST_UNCHECKED);
      ChangeClipboardChain(hWnd, NULL);
     }
@@ -91,12 +91,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
    if(wParam == listenKeystrokesID) 
    {
     if(IsDlgButtonChecked(hWnd, listenKeystrokesID) == BST_UNCHECKED) 
-	{
+    {
      CheckDlgButton(hWnd, listenKeystrokesID, BST_CHECKED);
      hook = SetWindowsHookEx(WH_KEYBOARD_LL, &keyProc, NULL, 0);
     }
     else 
-	{
+    {
      CheckDlgButton(hWnd, listenKeystrokesID, BST_UNCHECKED);
      UnhookWindowsHookEx(hook);
     }
@@ -113,8 +113,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
     GlobalUnlock(clipData);
     CloseClipboard();
     if(clipTextWide != NULL)
-	{
-	 int clipTextSize = WideCharToMultiByte(CP_UTF8, 0, clipTextWide, -1, NULL, 0, NULL, NULL);
+    {
+     int clipTextSize = WideCharToMultiByte(CP_UTF8, 0, clipTextWide, -1, NULL, 0, NULL, NULL);
      TCHAR clipText[clipTextSize];
      WideCharToMultiByte(CP_UTF8, 0, clipTextWide, -1, &clipText[0], clipTextSize, NULL, NULL);
      SYSTEMTIME st;
@@ -130,12 +130,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
      WriteFile(hFile, " ", 1, NULL, NULL);
      WriteFile(hFile, time, timeSize - 1, NULL, NULL);
      WriteFile(hFile, ":", 1, NULL, NULL);
-   	 WriteFile(hFile, newLine, 2, NULL, NULL);
-	 WriteFile(hFile, clipText, clipTextSize - 1, NULL, NULL);
- 	 WriteFile(hFile, newLine, 2, NULL, NULL);
+     WriteFile(hFile, newLine, 2, NULL, NULL);
+     WriteFile(hFile, clipText, clipTextSize - 1, NULL, NULL);
+     WriteFile(hFile, newLine, 2, NULL, NULL);
      CloseHandle(hFile);
     }
-   }		
+   }
    break; 
   }
 			 
