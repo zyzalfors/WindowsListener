@@ -154,7 +154,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
  wc.hInstance = hInstance;
  wc.lpszClassName = "WindowClass";
  if(!RegisterClassEx(&wc)) { return 0; }
- HWND hWnd = CreateWindowEx(0, "WindowClass", "WListener 1.0", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, CW_USEDEFAULT, CW_USEDEFAULT, 250, 100, NULL, NULL, hInstance, NULL);
+ HWND hWnd = CreateWindowEx(0, "WindowClass", "Windows Listener", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, CW_USEDEFAULT, CW_USEDEFAULT, 270, 100, NULL, NULL, hInstance, NULL);
  if(hWnd == NULL) { return 0; }
  MSG msg = {};
  while(GetMessage(&msg, NULL, 0, 0) > 0) 
