@@ -4,10 +4,9 @@
 #define listenKeystrokesID 1
 
 HHOOK hook = 0;
-
 const TCHAR newLine[2] = {13, 10};
 
-LRESULT CALLBACK keyProc(int nCode, WPARAM wParam, LPARAM lParam) 
+LRESULT CALLBACK keyProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
  if(wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
  {
@@ -36,20 +35,18 @@ LRESULT CALLBACK keyProc(int nCode, WPARAM wParam, LPARAM lParam)
  return 0;
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam) 
+LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
  switch(Message)
  {
- 	
-  case WM_CREATE : 
-  {		 
-   SetWindowLongA(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX);		 
+  case WM_CREATE:
+  {
+   SetWindowLongA(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX);
    CreateWindow("BUTTON", "Listen clipboard", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 10, 10, 160, 25, hWnd, (HMENU) listenClipboardID, NULL, NULL);
    CreateWindow("BUTTON", "Listen keystrokes", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 10, 40, 160, 25, hWnd, (HMENU) listenKeystrokesID, NULL, NULL);
    break;
   }
-    	 
-  case WM_PAINT : 
+  case WM_PAINT:
   {
    PAINTSTRUCT ps;
    HDC hdc = BeginPaint(hWnd, &ps);
@@ -57,45 +54,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
    EndPaint(hWnd, &ps);
    break;
   }
-    	    	
-  case WM_CTLCOLORSTATIC : 
+  case WM_CTLCOLORSTATIC:
   {
    SetBkMode((HDC) wParam, TRANSPARENT);
    return (LRESULT) GetStockObject(NULL_BRUSH);
    break;
   }
-		
-  case WM_CLOSE : 
+  case WM_CLOSE:
   {
    ChangeClipboardChain(hWnd, NULL);
    UnhookWindowsHookEx(hook);
    PostQuitMessage(0);
    break;
   }
-		
-  case WM_COMMAND : 
+  case WM_COMMAND:
   {
-   if(wParam == listenClipboardID) 
+   if(wParam == listenClipboardID)
    {
-    if(IsDlgButtonChecked(hWnd, listenClipboardID) == BST_UNCHECKED) 
+    if(IsDlgButtonChecked(hWnd, listenClipboardID) == BST_UNCHECKED)
     {
      CheckDlgButton(hWnd, listenClipboardID, BST_CHECKED);
      SetClipboardViewer(hWnd);
     }
-    else 
+    else
     {
      CheckDlgButton(hWnd, listenClipboardID, BST_UNCHECKED);
      ChangeClipboardChain(hWnd, NULL);
     }
    }
-   if(wParam == listenKeystrokesID) 
+   if(wParam == listenKeystrokesID)
    {
-    if(IsDlgButtonChecked(hWnd, listenKeystrokesID) == BST_UNCHECKED) 
+    if(IsDlgButtonChecked(hWnd, listenKeystrokesID) == BST_UNCHECKED)
     {
      CheckDlgButton(hWnd, listenKeystrokesID, BST_CHECKED);
      hook = SetWindowsHookEx(WH_KEYBOARD_LL, &keyProc, NULL, 0);
     }
-    else 
+    else
     {
      CheckDlgButton(hWnd, listenKeystrokesID, BST_UNCHECKED);
      UnhookWindowsHookEx(hook);
@@ -103,8 +97,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
    }
    break;
   }
-  
-  case WM_DRAWCLIPBOARD :
+  case WM_DRAWCLIPBOARD:
   {
    if(OpenClipboard(hWnd))
    {
@@ -136,31 +129,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
      CloseHandle(hFile);
     }
    }
-   break; 
+   break;
   }
-			 
-  default :
-  return DefWindowProc(hWnd, Message, wParam, lParam);
+  default:
+   return DefWindowProc(hWnd, Message, wParam, lParam);
  }
  return 0;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) 
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
  ShowWindow(GetConsoleWindow(), SW_HIDE);
  WNDCLASSEX wc = {};
  wc.cbSize = sizeof(WNDCLASSEX);
- wc.lpfnWndProc = WndProc; 
+ wc.lpfnWndProc = WndProc;
  wc.hInstance = hInstance;
  wc.lpszClassName = "WindowClass";
- if(!RegisterClassEx(&wc)) { return 0; }
- HWND hWnd = CreateWindowEx(0, "WindowClass", "Windows Listener", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, CW_USEDEFAULT, CW_USEDEFAULT, 270, 100, NULL, NULL, hInstance, NULL);
- if(hWnd == NULL) { return 0; }
+ if(!RegisterClassEx(&wc))
+ {
+  return 0;
+ }
+ HWND hWnd = CreateWindowEx(0, "WindowClass", "Windows Listener v1.0.0", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, CW_USEDEFAULT, CW_USEDEFAULT, 300, 100, NULL, NULL, hInstance, NULL);
+ if(hWnd == NULL)
+ {
+  return 0;
+ }
  MSG msg = {};
- while(GetMessage(&msg, NULL, 0, 0) > 0) 
- { 
-  TranslateMessage(&msg); 
-  DispatchMessage(&msg); 
+ while(GetMessage(&msg, NULL, 0, 0) > 0)
+ {
+  TranslateMessage(&msg);
+  DispatchMessage(&msg);
  }
  return 0;
 }
